@@ -1,24 +1,23 @@
 /**
- * Created by gloria on 12/2/14.
+ * Created by gloria on 3/12/14.
  */
+/*client.js*/
 var models  = require('../models');
 var express = require('express');
 var router  = express.Router();
 
-router.route('/users')
+router.route('/client')
     .post(function(req, res) {
 
         var name 	= req.body.name
-            , mail 		= req.body.mail
-            , is_active = req.body.is_active
-            , created_at= req.body.created_at
-            , password  = req.body.password;
+            , secret 		= req.body.secret
+            , user_id = req.body.user_id;
 
-        var user = models.user.build({ name: name, mail: mail,is_active:is_active, created_at: created_at , password:password});
+        var client = models.client.build({ name: name, secret: secret, user_id: user_id });
 
-        user.create(
+        client.create(
             function(success){
-                res.json({ message: 'El usuario se ha creado correctamente.' });
+                res.json({ message: 'El cliente se ha creado correctamente.' });
             },
             function(error) {
                 res.send(error);
@@ -26,32 +25,31 @@ router.route('/users')
     })
 
     .get(function(req, res) {
-        var user = models.user.build();
+        var client = models.client.build();
 
-        user.find(
-            function(users) {
-                if(users) {
-                    res.json(users);
+        client.find(
+            function(client) {
+                if(client) {
+                    res.json(client);
                 } else {
                     res.send(401, "El listado de usuarios se ha cargado correctamente.");
                 }
             },
             function(error) {
-                res.send(500, "El listado de usuarios no ha cargado correctamente." + error);
+                res.send(500, "El listado de usuarios no ha cargado correctamente.");
             });
     });
 
-router.route('/users/:user_id')
+router.route('/client/:client_id')
     .put(function(req, res) {
-        var user = models.user.build();
+        var client = models.client.build();
 
-        user.name = req.body.name;
-        user.mail = req.body.mail;
-        user.is_active = req.body.is_active;
-        user.created_at = req.body.created_at;
-        user.password= req.body.password;
+        client.name = req.body.name;
+        client.secret = req.body.secret;
+        client.user_id = req.body.user_id;
 
-        user.updateById(req.params.user_id, function(success) {
+
+        client.updateById(req.params.client_id, function(success) {
             if(success) {
                 res.json({ message: 'El usuario se ha actualizado correctamente.' });
             } else {
@@ -63,9 +61,9 @@ router.route('/users/:user_id')
     })
 
     .get(function(req, res) {
-        var user = models.user.build();
+        var client = models.client.build();
 
-        user.findById(req.params.user_id, function(user) {
+        client.findById(req.params.client_id, function(client) {
             if(user) {
                 res.json(user);
             } else {
@@ -77,10 +75,10 @@ router.route('/users/:user_id')
     })
 
     .delete(function(req, res) {
-        var user = models.user.build();
+        var client = models.client.build();
 
-        user.removeById(req.params.user_id, function(users) {
-            if (users) {
+        client.removeById(req.params.client_id, function(client) {
+            if (client) {
                 res.json({ message: 'El usuario se ha eliminado correctamente.' });
             } else {
                 res.send(401, "El usuario no existe.");

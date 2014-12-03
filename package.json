@@ -19,8 +19,10 @@
     "express": "^4.10.4",
     "morgan": "^1.5.0",
     "mysql": "^2.5.3",
+    "oauth2-server": "^2.3.0",
     "passport": "^0.2.1",
     "passport-http": "^0.2.2",
+    "passport-http-bearer": "^1.0.1",
     "sequelize": "^2.0.0-rc2"
   }
 }

@@ -26,20 +26,25 @@ module.exports = function (sequelize, DataTypes) {
             findById: function(userId, onSuccess, onError) {
                 User.find({where: {id: userId}}, {raw: true}).success(onSuccess).error(onError);
             },
+            findByMail: function(mail, onSuccess, onError) {
+                User.find({where: {mail: mail}}, {raw: true}).success(onSuccess).error(onError);
+            },
             create: function(onSuccess, onError) {
                 var name 		= this.name
                     , mail 		= this.mail
-                    , is_active = this.is_active;
+                    , is_active = this.is_active
+                    , password  = this.password;
 
-                User.build({ name: name, mail: mail, is_active: is_active })
+                User.build({ name: name, mail: mail, is_active: is_active , password: password })
                     .save().success(onSuccess).error(onError);
             },
             updateById: function(userId, onSuccess, onError) {
                 var name 		= this.name
                     , mail 		= this.mail
-                    , is_active = this.is_active;
+                    , is_active = this.is_active
+                    , password  = this.setPassword(this.password);
 
-                User.update({ name: name, mail: mail, is_active: is_active },{where: {id: userId} }).success(onSuccess).error(onError);
+                User.update({ name: name, mail: mail, is_active: is_active , password:password },{where: {id: userId} }).success(onSuccess).error(onError);
             },
             removeById: function(userId, onSuccess, onError) {
                 User.destroy({where: {id: userId}}).success(onSuccess).error(onError);

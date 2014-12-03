@@ -30,13 +30,19 @@ var sequelize = new Sequelize(
 
 // Export model
 var models = [
-    'user'
+    'user',
+    'client',
+    'code',
+    'token'
 ];
 
 models.forEach(function(model){
     module.exports[model] = sequelize.import(__dirname + '/' + model);
 });
-
-
+module.exports.client.hasOne(module.exports.user,{foreigkey:'id'});
+module.exports.code.hasOne(module.exports.user,{foreigkey:'id'});
+module.exports.code.hasOne(module.exports.client,{foreigkey:'id'})
+module.exports.token.hasOne(module.exports.user,{foreigkey:'id'});
+module.exports.token.hasOne(module.exports.client,{foreigkey:'id'});
 
 module.exports.sequelize = sequelize;
