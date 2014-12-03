@@ -14,7 +14,8 @@ router.route('/users')
             , created_at= req.body.created_at
             , password  = req.body.password;
 
-        var user = models.user.build({ name: name, mail: mail,password:password,is_active:is_active, created_at: created_at });
+        var user = models.user.build({ name: name, mail: mail,is_active:is_active, created_at: created_at });
+        user.setPassword(password);
 
         user.create(
             function(success){

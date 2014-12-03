@@ -12,7 +12,7 @@ module.exports = function (sequelize, DataTypes) {
     var User = sequelize.define('user', {
         id: 			{ type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true }
         , name: 		{ type: DataTypes.STRING, allowNull: false }
-        , mail: 		{ type: DataTypes.STRING, allowNull: false }
+        , mail: 		{ type: DataTypes.STRING, allowNull: false, unique:true }
         , is_active: 	{ type: DataTypes.BOOLEAN, defaultValue: 1 }
         , password:     { type: DataTypes.STRING, allowNull: false}
     }, {

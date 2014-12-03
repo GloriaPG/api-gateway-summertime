@@ -23,9 +23,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 //List routes
 var user = require('./routes/user');
+var projects = require('./routes/projects'); // delete this bitches send error
 
 // Define Routers
 app.use('/api/v1',user);
+app.use('/api/v1',projects);
 
 
 // If no route is matched by now, it must be a 404
