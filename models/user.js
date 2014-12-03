@@ -1,70 +1,45 @@
-/**
- * Created by gloria on 12/2/14.
- */
+// Load required packages
+var mongoose = require('mongoose');
+var bcrypt = require('bcrypt-nodejs');
 
-/*users.js*/
+// Define our user schema
+var UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    unique: true,
+    required: true
+  },
+  password: {
+    type: String,
+    required: true
+  }
+});
 
-"use strict"
+// Execute before each user.save() call
+UserSchema.pre('save', function(callback) {
+  var user = this;
 
-var bcrypt = require('bcrypt');
+  // Break out if the password hasn't changed
+  if (!user.isModified('password')) return callback();
 
-module.exports = function (sequelize, DataTypes) {
-    var User = sequelize.define('user', {
-        id: 			{ type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true }
-        , name: 		{ type: DataTypes.STRING, allowNull: false }
-        , mail: 		{ type: DataTypes.STRING, allowNull: false, unique:true }
-        , is_active: 	{ type: DataTypes.BOOLEAN, defaultValue: 1 }
-        , password:     { type: DataTypes.STRING, allowNull: false}
-    }, {
-        instanceMethods: {
-            find: function(onSuccess, onError) {
-                User.findAll(
-                    {
-                        order: 'name ASC'
-                    }, {raw: true}).success(onSuccess).error(onError);
-            },
-            findById: function(userId, onSuccess, onError) {
-                User.find({where: {id: userId}}, {raw: true}).success(onSuccess).error(onError);
-            },
-            findByMail: function(mail, onSuccess, onError) {
-                User.find({where: {mail: mail}}, {raw: true}).success(onSuccess).error(onError);
-            },
-            create: function(onSuccess, onError) {
-                var name 		= this.name
-                    , mail 		= this.mail
-                    , is_active = this.is_active
-                    , password  = this.password;
+  // Password changed so we need to hash it
+  bcrypt.genSalt(5, function(err, salt) {
+    if (err) return callback(err);
 
-                User.build({ name: name, mail: mail, is_active: is_active , password: password })
-                    .save().success(onSuccess).error(onError);
-            },
-            updateById: function(userId, onSuccess, onError) {
-                var name 		= this.name
-                    , mail 		= this.mail
-                    , is_active = this.is_active
-                    , password  = this.setPassword(this.password);
-
-                User.update({ name: name, mail: mail, is_active: is_active , password:password },{where: {id: userId} }).success(onSuccess).error(onError);
-            },
-            removeById: function(userId, onSuccess, onError) {
-                User.destroy({where: {id: userId}}).success(onSuccess).error(onError);
-            },
-            setPassword: function(password, done) {
-                return bcrypt.genSalt(10, function(err, salt) {
-                    return bcrypt.hash(password, salt, function(error, encrypted) {
-                        this.password = encrypted;
-                        this.salt = salt;
-                        return done();
-                    });
-                });
-            },
-            verifyPassword: function(password, done) {
-                return bcrypt.compare(password, this.password, function(err, res) {
-                    return done(err, res);
-                });
-            }
-        }
+    bcrypt.hash(user.password, salt, null, function(err, hash) {
+      if (err) return callback(err);
+      user.password = hash;
+      callback();
     });
+  });
+});
 
-    return User;
+UserSchema.methods.verifyPassword = function(password, cb) {
+  bcrypt.compare(password, this.password, function(err, isMatch) {
+    if (err) return cb(err);
+    cb(null, isMatch);
+  });
 };
+
+// Export the Mongoose model
+module.exports = mongoose.model('User', UserSchema);

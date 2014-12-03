@@ -1,55 +1,80 @@
-/**
- * Created by gloria on 12/2/14.
- */
+// Load required packages
+var express = require('express');
+var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+var ejs = require('ejs');
+var session = require('express-session');
+var passport = require('passport');
+var beerController = require('./controllers/beer');
+var projectsController = require('./controllers/projects');
+var userController = require('./controllers/user');
+var authController = require('./controllers/auth');
+var oauth2Controller = require('./controllers/oauth2');
+var clientController = require('./controllers/client');
 
-// Get the packages we need
-var express 	= require('express')
-    , path 			= require('path')
-    , debug 		= require('morgan')
-    , bodyParser 	= require('body-parser')
-    , app 			= express()
-    , models        = require("./models");
-
+// Connect to the beerlocker MongoDB
+mongoose.connect('mongodb://localhost:27017/beerlocker');
 
 // Create our Express application
 var app = express();
 
-// Use enviroment defined port or 3000
-var port = process.env.PORT || 3000
+// Set view engine to ejs
+app.set('view engine', 'ejs');
 
-app.use(debug('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+// Use the body-parser package in our application
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
-//List routes
-var user = require('./routes/user');
-var projects = require('./routes/projects'); // delete this bitches send error
-var client = require('./routes/client');
+// Use express session support since OAuth2orize requires it
+app.use(session({ 
+  secret: 'Super Secret Session Key',
+  saveUninitialized: true,
+  resave: true
+}));
 
-// Define Routers
-app.use('/api/v1',user);
-app.use('/api/v1',projects);
-app.use('/api/v1',client);
+// Use the passport package in our application
+app.use(passport.initialize());
 
+// Create our Express router
+var router = express.Router();
 
-// If no route is matched by now, it must be a 404
-app.use(function(req, res, next) {
-    var err = new Error('Not Found :D bitches');
-    err.status = 404;
-    next(err);
-});
+// Create endpoint handlers for /beers
+router.route('/beers')
+  .post(authController.isAuthenticated, beerController.postBeers)
+  .get(authController.isAuthenticated, beerController.getBeers);
 
-// Start server
-app.set('port', port);
+// Create endpoint handlers for /beers
+router.route('/projects')
+    .get(authController.isAuthenticated,projectsController.getProjects);
 
-//Create schema database
-models.sequelize.sync().success(function () {
-    var server = app.listen(app.get('port'), function() {
-        debug('Express server listening on port ' + server.address().port);
-    });
-});
+// Create endpoint handlers for /beers/:beer_id
+router.route('/beers/:beer_id')
+  .get(authController.isAuthenticated, beerController.getBeer)
+  .put(authController.isAuthenticated, beerController.putBeer)
+  .delete(authController.isAuthenticated, beerController.deleteBeer);
 
+// Create endpoint handlers for /users
+router.route('/users')
+  .post(userController.postUsers)
+  .get(authController.isAuthenticated, userController.getUsers);
 
+// Create endpoint handlers for /clients
+router.route('/clients')
+  .post(authController.isAuthenticated, clientController.postClients)
+  .get(authController.isAuthenticated, clientController.getClients);
 
+// Create endpoint handlers for oauth2 authorize
+router.route('/oauth2/authorize')
+  .get(authController.isAuthenticated, oauth2Controller.authorization)
+  .post(authController.isAuthenticated, oauth2Controller.decision);
 
+// Create endpoint handlers for oauth2 token
+router.route('/oauth2/token')
+  .post(authController.isClientAuthenticated, oauth2Controller.token);
 
+// Register all our routes with /api
+app.use('/api/v1', router);
+
+// Start the server
+app.listen(3000);
